@@ -25,7 +25,10 @@ class TestESPY(unittest.TestCase):
             alerts = espy._create_alerts(cp)
             self.assertEqual(len(alerts), 1)
             self.assertEqual(alerts[0].alert_src, 'True')
+            self.assertIsNone(alerts[0].clear_src)
             self.assertTrue(alerts[0].should_alert(0))
+            self.assertEqual(alerts[0].level, logging.WARNING)
+            self.assertIsNone(alerts[0].msg)
         finally:
             os.unlink(temppath)
 
