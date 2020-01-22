@@ -41,7 +41,7 @@ class Alert:
             return self._eval(self.clear_src, now, **context)
 
 
-class ESPY:
+class Manager:
 
     def __init__(self, lasts, alerts):
         self.lasts = lasts
@@ -129,7 +129,7 @@ def main(argv=None):
 
     # create alerts from config
     alerts = _create_alerts(cp)
-    manager = ESPY(lasts, alerts)
+    manager = Manager(lasts, alerts)
 
     # test config: run expressions and exit
     if args.test:
