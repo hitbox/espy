@@ -143,6 +143,8 @@ def main(argv=None):
         for alert in manager.alerts:
             alert.should_clear(0, last=None)
             alert.should_alert(0, last=None)
+            if alert.context:
+                eval(alert.context)
         parser.exit()
 
     manager.process(time.time())
