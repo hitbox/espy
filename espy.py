@@ -13,7 +13,7 @@ class ESPYError(Exception):
 
 class Alert:
 
-    def __init__(self, name, alert_src, clear_src, level=None, msg=None):
+    def __init__(self, name, alert_src, clear_src=None, level=None, msg=None):
         self.name = name
         self.alert_src = alert_src
         self.clear_src = clear_src
@@ -67,7 +67,7 @@ def _create_alerts(cp):
         if not section['alert']:
             raise ESPYError('Config error: alert key must be eval-able string')
         alert_src = section['alert']
-        clear_src = section['clear']
+        clear_src = section.get('clear')
         level = section.get('level')
         msg = section.get('msg')
         alerts.append(Alert(alertname, alert_src, clear_src, level=level, msg=msg))
