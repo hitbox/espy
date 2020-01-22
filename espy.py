@@ -13,12 +13,13 @@ class ESPYError(Exception):
 
 class Alert:
 
-    def __init__(self, name, alert_src, clear_src=None, level=None, msg=None):
+    def __init__(self, name, alert_src, clear_src=None, level=None, msg=None, context=None):
         self.name = name
         self.alert_src = alert_src
         self.clear_src = clear_src
         self.level = logging.WARNING if level is None else level
         self.msg = msg
+        self.context = context
 
     def do_alert(self):
         msg = self.message()
@@ -30,6 +31,8 @@ class Alert:
 
     def _eval(self, source, now, **context):
         globals = dict(now=now, Path=Path, time=time, **context)
+        if self.context:
+            globals.update(**eval(self.context))
         rv = eval(source, globals)
         return bool(rv)
 
@@ -70,7 +73,10 @@ def _create_alerts(cp):
         clear_src = section.get('clear')
         level = section.get('level')
         msg = section.get('msg')
-        alerts.append(Alert(alertname, alert_src, clear_src, level=level, msg=msg))
+        context = section.get('context')
+        alert = Alert(alertname, alert_src, clear_src, level=level, msg=msg,
+                      context=context)
+        alerts.append(alert)
     return alerts
 
 def main(argv=None):

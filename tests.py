@@ -8,20 +8,29 @@ import unittest
 
 import espy
 
+@contextlib.contextmanager
+def tempconfig(text):
+    try:
+        fd, temppath = tempfile.mkstemp(suffix='.pickle')
+        cp = configparser.ConfigParser()
+        cp.read_string(text.format(temppath=temppath))
+        yield cp
+    finally:
+        os.unlink(temppath)
+
 class TestESPY(unittest.TestCase):
 
     def test__create_alerts(self):
-        try:
-            fd, temppath = tempfile.mkstemp(suffix='.pickle')
-            cp = configparser.ConfigParser()
-            cp.read_string(f"""
+        "test creating alerts from configparser"
+        text = """
             [espy]
             database = {temppath}
             keys = alert
 
             [espy_alert]
             alert = True
-            """)
+            """
+        with tempconfig(text) as cp:
             alerts = espy._create_alerts(cp)
             self.assertEqual(len(alerts), 1)
             self.assertEqual(alerts[0].alert_src, 'True')
@@ -29,8 +38,25 @@ class TestESPY(unittest.TestCase):
             self.assertTrue(alerts[0].should_alert(0))
             self.assertEqual(alerts[0].level, logging.WARNING)
             self.assertIsNone(alerts[0].msg)
-        finally:
-            os.unlink(temppath)
+
+    def test_context(self):
+        "test that context is passed to alert and clear expressions"
+        text = """
+            [espy]
+            database = {temppath}
+            keys = alert
+
+            [espy_alert]
+            context = dict(pathobj = Path('tests.py'))
+            alert = pathobj.stat().st_mtime > 0
+            clear = pathobj
+            """
+        with tempconfig(text) as cp:
+            alerts = espy._create_alerts(cp)
+            self.assertEqual(len(alerts), 1)
+            alert = alerts[0]
+            self.assertTrue(alert.should_alert(0))
+            self.assertTrue(alert.should_clear(0))
 
     def test_instantiation(self):
         alert = espy.Alert('alert', 'now > 0', msg='TEST MESSAGE')
