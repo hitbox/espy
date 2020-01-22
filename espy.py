@@ -103,8 +103,6 @@ def main(argv=None):
     logger = logging.getLogger('espy')
     if not logger.handlers:
         raise ESPYError('No handlers configured for espy')
-    if args.command == 'run':
-        logger.info('started')
 
     # load last alert times
     dbpath = cp['espy']['database']
@@ -145,7 +143,7 @@ def main(argv=None):
     pickle.dump(manager.lasts, lastsdb.open('wb'))
 
     if args.command == 'run':
-        logger.info('done')
+        logger.info('run completed')
 
 if __name__ == '__main__':
     main()
