@@ -37,7 +37,8 @@ class Alert:
         return self._eval(self.alert_src, now, **context)
 
     def should_clear(self, now, **context):
-        return self._eval(self.clear_src, now, **context)
+        if self.clear_src:
+            return self._eval(self.clear_src, now, **context)
 
 
 class ESPY:
