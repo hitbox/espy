@@ -87,7 +87,10 @@ def main(argv=None):
     parser.set_defaults(command='run')
 
     subparsers = parser.add_subparsers()
-    lasts_sp = subparsers.add_parser('lasts', help='Utilities for the lasts database.')
+    # help is shown in the root help and description is shown in the lasts help
+    lasts_sp = subparsers.add_parser('lasts',
+            help='Utilities for the lasts database.',
+            description='List last alerts.')
     lasts_sp.set_defaults(command='lasts')
     lasts_group = lasts_sp.add_mutually_exclusive_group()
     lasts_group.add_argument('--clear', action='store_true')
