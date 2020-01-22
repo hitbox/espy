@@ -78,6 +78,15 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('config', nargs='+')
     parser.add_argument('-t', '--test', action='store_true', help='Just test configuration.')
+    parser.set_defaults(command='run')
+
+    subparsers = parser.add_subparsers()
+    lasts_sp = subparsers.add_parser('lasts', help='Utilities for the lasts database.')
+    lasts_sp.set_defaults(command='lasts')
+    lasts_group = lasts_sp.add_mutually_exclusive_group()
+    lasts_group.add_argument('--clear', action='store_true')
+    lasts_group.add_argument('--delete', nargs='+')
+
     args = parser.parse_args(argv)
 
     # exit if any config paths do not exist
@@ -94,16 +103,31 @@ def main(argv=None):
     logger = logging.getLogger('espy')
     if not logger.handlers:
         raise ESPYError('No handlers configured for espy')
+    if args.command == 'run':
+        logger.info('started')
 
     # load last alert times
     dbpath = cp['espy']['database']
     if not dbpath:
         raise ESPYError('Invalid configured database path')
-    db = Path(dbpath)
-    if db.exists():
-        lasts = pickle.load(db.open('rb'))
+    lastsdb = Path(dbpath)
+    if lastsdb.exists():
+        lasts = pickle.load(lastsdb.open('rb'))
     else:
         lasts = {}
+
+    # process lasts and exit
+    if args.command == 'lasts':
+        if args.clear:
+            pickle.dump({}, lastsdb.open('wb'))
+        elif args.delete:
+            for key in args.delete:
+                del lasts[key]
+            pickle.dump(lasts, lastsdb.open('wb'))
+        else:
+            for key in lasts:
+                print(key)
+        parser.exit()
 
     # create alerts from config
     alerts = _create_alerts(cp)
@@ -113,12 +137,15 @@ def main(argv=None):
     if args.test:
         # alerts evaluate with bare minimum context
         for alert in manager.alerts:
-            alert.should_clear(0)
-            alert.should_alert(0)
+            alert.should_clear(0, last=None)
+            alert.should_alert(0, last=None)
         parser.exit()
 
     manager.process(time.time())
-    pickle.dump(manager.lasts, db.open('wb'))
+    pickle.dump(manager.lasts, lastsdb.open('wb'))
+
+    if args.command == 'run':
+        logger.info('done')
 
 if __name__ == '__main__':
     main()
