@@ -11,7 +11,8 @@ class ESPYError(Exception):
 
 class Alert:
 
-    def __init__(self, name, alert_src, clear_src=None, level=None, msg=None, context=None):
+    def __init__(self, name, alert_src, clear_src=None, level=None, msg=None,
+                 context=None):
         self.name = name
         self.alert_src = alert_src
         self.clear_src = clear_src
