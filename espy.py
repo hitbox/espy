@@ -80,7 +80,9 @@ def _create_alerts(cp):
     return alerts
 
 def main(argv=None):
-    "Alert on configured conditions."
+    """
+    Alert on configured conditions.
+    """
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('config', nargs='+')
     parser.add_argument('-t', '--test', action='store_true', help='Just test configuration.')

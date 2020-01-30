@@ -74,5 +74,6 @@ class TestESPY(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 espy.main(['--help'])
 
+
 if __name__ == '__main__':
     unittest.main()
