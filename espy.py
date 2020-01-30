@@ -5,8 +5,6 @@ import pickle
 import time
 from pathlib import Path
 
-APPNAME = Path(__file__).stem
-
 class ESPYError(Exception):
     pass
 
