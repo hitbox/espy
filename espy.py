@@ -1,6 +1,7 @@
 import argparse
 import configparser
 import logging.config
+import os
 import pickle
 import time
 from pathlib import Path
@@ -13,30 +14,41 @@ class ESPYError(Exception):
 
 class Alert:
 
-    def __init__(self, name, alert_src, clear_src=None, level=None, msg=None, context=None):
+    def __init__(self, name, alert_src, clear_src=None, sanity_src=None,
+                 level=None, msg=None, context=None):
         self.name = name
         self.alert_src = alert_src
         self.clear_src = clear_src
+        self.sanity_src = sanity_src
         self.level = logging.WARNING if level is None else level
         self.msg = msg
         self.context = context
 
     def do_alert(self):
         msg = self.message()
-        logger = logging.getLogger(f'espy.{self.name}')
+        logger = self._getlogger()
         logger.log(self.level, msg)
 
     def message(self):
         return str(self.msg or self.alert_src)
 
+    def _getlogger(self):
+        return logging.getLogger(f'espy.{self.name}')
+
     def _eval(self, source, now, **context):
-        globals = dict(now=now, Path=Path, time=time, **context)
+        globals = dict(now=now, Path=Path, time=time, os=os, **context)
         if self.context:
             globals.update(**eval(self.context))
         rv = eval(source, globals)
         return bool(rv)
 
     def should_alert(self, now, **context):
+        if self.sanity_src:
+            try:
+                self._eval(self.sanity_src, now, **context)
+            except:
+                logger = self._getlogger()
+                logger.exception('sanity check failed')
         return self._eval(self.alert_src, now, **context)
 
     def should_clear(self, now, **context):
@@ -51,7 +63,9 @@ class Manager:
         self.alerts = alerts
 
     def process(self, now):
+        logger = logging.getLogger('espy')
         for alert in self.alerts:
+            logger.info('processing alert: %s', alert.name)
             last = self.lasts.get(alert.name)
             if (alert.name in self.lasts
                     and alert.should_clear(now, last=last)):
@@ -71,11 +85,12 @@ def _create_alerts(cp):
             raise ESPYError('Config error: alert key must be eval-able string')
         alert_src = section['alert']
         clear_src = section.get('clear')
+        sanity_src = section.get('sanity')
         level = section.get('level')
         msg = section.get('msg')
         context = section.get('context')
-        alert = Alert(alertname, alert_src, clear_src, level=level, msg=msg,
-                      context=context)
+        alert = Alert(alertname, alert_src, clear_src, sanity_src=sanity_src,
+                      level=level, msg=msg, context=context)
         alerts.append(alert)
     return alerts
 
