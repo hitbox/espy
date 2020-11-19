@@ -97,15 +97,18 @@ def main(argv=None):
     Alert on configured conditions.
     """
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument('config', nargs='+')
-    parser.add_argument('-t', '--test', action='store_true', help='Just test configuration.')
-    parser.set_defaults(command='run')
 
     subparsers = parser.add_subparsers()
+    run_sp = subparsers.add_parser('run')
+    run_sp.add_argument('config', nargs='+')
+    run_sp.add_argument('-t', '--test', action='store_true', help='Just test configuration.')
+    run_sp.set_defaults(command='run')
+
     # help is shown in the root help and description is shown in the lasts help
     lasts_sp = subparsers.add_parser('lasts',
             help='Utilities for the lasts database.',
             description='List last alerts.')
+    lasts_sp.add_argument('config', nargs='+')
     lasts_sp.set_defaults(command='lasts')
     lasts_group = lasts_sp.add_mutually_exclusive_group()
     lasts_group.add_argument('--clear', action='store_true')
