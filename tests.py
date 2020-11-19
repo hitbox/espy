@@ -20,7 +20,7 @@ def tempconfig(text):
 
 class TestESPY(unittest.TestCase):
 
-    def test__create_alerts(self):
+    def test_create_alerts(self):
         "test creating alerts from configparser"
         text = """
             [espy]
@@ -73,6 +73,7 @@ class TestESPY(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaises(SystemExit):
                 espy.main(['--help'])
+
 
 if __name__ == '__main__':
     unittest.main()
