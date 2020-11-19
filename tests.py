@@ -9,14 +9,15 @@ import unittest
 import espy
 
 @contextlib.contextmanager
-def tempconfig(text):
-    try:
-        fd, temppath = tempfile.mkstemp(suffix='.pickle')
+def tempconfig(config_text):
+    """
+    Create a config parser object from config_text and give it the path to a
+    temporary pickle file to use as the database.
+    """
+    with tempfile.TemporaryFile(suffix='.pickle') as tempdb:
         cp = configparser.ConfigParser()
-        cp.read_string(text.format(temppath=temppath))
+        cp.read_string(config_text.format(temppath=tempdb.name))
         yield cp
-    finally:
-        os.unlink(temppath)
 
 class TestESPY(unittest.TestCase):
 
