@@ -152,6 +152,8 @@ def main(argv=None):
         else:
             for key in lasts:
                 print(key)
+            else:
+                print('nothing in lasts')
         parser.exit()
 
     # create alerts from config
