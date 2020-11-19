@@ -75,6 +75,34 @@ class TestESPY(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 espy.main(['--help'])
 
+    def test_alert_over_time(self):
+        """
+        Alerts when there's no last last, clears when there is and last
+        modified time is greater than it.
+        """
+        _mtime = 12
+        mtime = lambda: _mtime
+        alert = espy.Alert('test', alert_src=f'not last and now - mtime() > 10',
+                           clear_src=f'last and mtime() > last')
+        # should throw exception because last not given
+        with self.assertRaises(NameError):
+            self.assertFalse(alert.should_alert(now=mtime()+8, mtime=mtime))
+        # should not alert because last is given
+        self.assertFalse(alert.should_alert(now=mtime()+8, last=2, mtime=mtime))
+        # should alert because `last` is falsey and the difference between now
+        # and `mtime` is greater than 10...
+        self.assertTrue(alert.should_alert(now=mtime()+11, last=None, mtime=mtime))
+        # ...the given now should get stored as last...
+        # ...then, should not alert on subsequent calls until cleared
+        self.assertFalse(alert.should_alert(now=mtime()+20, last=mtime()+11, mtime=mtime))
+        # suppose mtime is updated...
+        _mtime = 20
+        self.assertFalse(alert.should_alert(now=mtime()+20, last=mtime()+11, mtime=mtime))
+        with self.assertRaises(NameError):
+            self.assertFalse(alert.should_clear(now=mtime()+8))
+        # should clear because mtime > last
+        self.assertTrue(alert.should_clear(now=mtime()+8, last=2, mtime=mtime))
+
 
 if __name__ == '__main__':
     unittest.main()

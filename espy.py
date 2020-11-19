@@ -6,8 +6,6 @@ import pickle
 import time
 from pathlib import Path
 
-APPNAME = Path(__file__).stem
-
 class ESPYError(Exception):
     pass
 
@@ -95,7 +93,9 @@ def _create_alerts(cp):
     return alerts
 
 def main(argv=None):
-    "Alert on configured conditions."
+    """
+    Alert on configured conditions.
+    """
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('config', nargs='+')
     parser.add_argument('-t', '--test', action='store_true', help='Just test configuration.')
